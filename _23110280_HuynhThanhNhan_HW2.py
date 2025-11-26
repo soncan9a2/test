@@ -10,7 +10,22 @@ class UI:
         self.window = tk.Tk()
         self.window.title("23110280_HuynhThanhNhan_HW2")
         self.window.geometry("1500x800")
-        self.window.configure(bg='#f0f0f0')
+
+        # Palette & typography để giao diện hài hòa hơn
+        self.colors = {
+            'background': '#f5f7fb',
+            'panel': '#ffffff',
+            'border': '#d0d7de',
+            'accent': '#00bcd4',
+            'control': '#eef2ff'
+        }
+        self.fonts = {
+            'title': ('Arial', 14, 'bold'),
+            'subtitle': ('Arial', 11, 'bold'),
+            'label': ('Arial', 10, 'bold')
+        }
+
+        self.window.configure(bg=self.colors['background'])
         
         self.original_image = None
         self.processed_image = None
@@ -25,38 +40,43 @@ class UI:
         self.selected_domain = tk.StringVar(value="Miền không gian")
         
         # Tạo button frame trước để đảm bảo nó luôn ở bottom
-        button_frame = tk.Frame(self.window, bg='#f0f0f0')
-        button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
-        
-        # Main container với padding bottom đủ lớn để không che button
-        main_container = tk.Frame(self.window, bg='#f0f0f0')
+        button_frame = tk.Frame(self.window, bg=self.colors['panel'], bd=1, relief=tk.SOLID)
+        button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10, padx=10)
+
+        # Main container với PanedWindow để hai panel cân đối và có thể điều chỉnh
+        main_container = tk.PanedWindow(self.window, orient=tk.HORIZONTAL, sashwidth=6,
+                                        sashrelief=tk.RAISED, bg=self.colors['background'],
+                                        relief=tk.FLAT, bd=0)
         main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=(10, 80))
-        
-        left_panel = tk.Frame(main_container, bg='#f0f0f0')
-        left_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-        
-        # Sử dụng grid để chia đều không gian cho 2 ảnh
+
+        left_panel = tk.Frame(main_container, bg=self.colors['panel'], bd=1, relief=tk.SOLID)
         left_panel.grid_rowconfigure(1, weight=1)
         left_panel.grid_rowconfigure(3, weight=1)
         left_panel.grid_columnconfigure(0, weight=1)
-        
-        tk.Label(left_panel, text="Original Image", font=('Arial', 10, 'bold'), bg='#f0f0f0').grid(row=0, column=0, sticky='ew', pady=(0, 5))
-        self.original_label = tk.Label(left_panel, bg='black', relief=tk.SUNKEN, bd=2)
-        self.original_label.grid(row=1, column=0, sticky='nsew', pady=5)
-        
-        self.processed_title_label = tk.Label(left_panel, text="Negative image", 
-                                              font=('Arial', 10, 'bold'), bg='#f0f0f0')
-        self.processed_title_label.grid(row=2, column=0, sticky='ew', pady=(10, 5))
-        self.processed_label = tk.Label(left_panel, bg='black', relief=tk.SUNKEN, bd=2)
-        self.processed_label.grid(row=3, column=0, sticky='nsew', pady=5)
-        
-        right_panel = tk.Frame(main_container, bg='#f0f0f0', width=580)
-        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(10, 0))
+
+        tk.Label(left_panel, text="Original Image", font=self.fonts['label'], bg=self.colors['panel']).grid(row=0, column=0, sticky='ew', pady=(8, 4), padx=8)
+        original_holder = tk.Frame(left_panel, bg=self.colors['control'], bd=1, relief=tk.SOLID)
+        original_holder.grid(row=1, column=0, sticky='nsew', padx=8, pady=(0, 8))
+        self.original_label = tk.Label(original_holder, bg='black', relief=tk.SUNKEN, bd=0)
+        self.original_label.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
+        self.processed_title_label = tk.Label(left_panel, text="Negative image",
+                                              font=self.fonts['label'], bg=self.colors['panel'])
+        self.processed_title_label.grid(row=2, column=0, sticky='ew', pady=(4, 4), padx=8)
+        processed_holder = tk.Frame(left_panel, bg=self.colors['control'], bd=1, relief=tk.SOLID)
+        processed_holder.grid(row=3, column=0, sticky='nsew', padx=8, pady=(0, 8))
+        self.processed_label = tk.Label(processed_holder, bg='black', relief=tk.SUNKEN, bd=0)
+        self.processed_label.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
+        right_panel = tk.Frame(main_container, bg=self.colors['panel'], bd=1, relief=tk.SOLID, width=580)
         right_panel.pack_propagate(False)
-        
-        canvas = tk.Canvas(right_panel, bg='#f0f0f0', highlightthickness=0)
+
+        main_container.add(left_panel, stretch='always')
+        main_container.add(right_panel)
+
+        canvas = tk.Canvas(right_panel, bg=self.colors['panel'], highlightthickness=0)
         scrollbar = tk.Scrollbar(right_panel, orient="vertical", command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg='#f0f0f0', width=560)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['panel'], width=560)
         
         def configure_scroll_region(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
@@ -77,15 +97,15 @@ class UI:
         scrollbar.pack(side="right", fill="y")
         
         # Tiêu đề chính
-        title_label = tk.Label(scrollable_frame, text="Công cụ biến đổi", 
-                              font=('Arial', 14, 'bold'), bg='#00bcd4', fg='white', pady=8)
+        title_label = tk.Label(scrollable_frame, text="Công cụ biến đổi",
+                              font=self.fonts['title'], bg=self.colors['accent'], fg='white', pady=8)
         title_label.pack(fill=tk.X, pady=(0, 10))
         
         # Menu chọn miền
-        menu_frame = tk.Frame(scrollable_frame, bg='#f0f0f0')
+        menu_frame = tk.Frame(scrollable_frame, bg=self.colors['panel'])
         menu_frame.pack(fill=tk.X, pady=(0, 10), padx=5)
-        
-        tk.Label(menu_frame, text="Chọn miền:", font=('Arial', 11, 'bold'), bg='#f0f0f0').pack(side=tk.LEFT, padx=5)
+
+        tk.Label(menu_frame, text="Chọn miền:", font=('Arial', 11, 'bold'), bg=self.colors['panel']).pack(side=tk.LEFT, padx=5)
         
         # Tạo OptionMenu với giá trị tiếng Việt
         domain_options = ["Miền không gian", "Miền tần số"]
@@ -99,7 +119,7 @@ class UI:
         self.selected_domain.set("Miền không gian")
         
         # === FRAME MIỀN KHÔNG GIAN ===
-        self.spatial_frame = tk.Frame(scrollable_frame, bg='#f0f0f0')
+        self.spatial_frame = tk.Frame(scrollable_frame, bg=self.colors['panel'])
         self.spatial_frame.pack(fill=tk.X, pady=(0, 10))
         
         spatial_title = tk.Label(self.spatial_frame, text="📐 MIỀN KHÔNG GIAN (Spatial Domain)", 
@@ -130,7 +150,7 @@ class UI:
         self.create_morphological_filtering_section(self.spatial_frame)
         
         # === FRAME MIỀN TẦN SỐ ===
-        self.frequency_frame = tk.Frame(scrollable_frame, bg='#f0f0f0')
+        self.frequency_frame = tk.Frame(scrollable_frame, bg=self.colors['panel'])
         self.frequency_frame.pack(fill=tk.X, pady=(0, 10))
         
         frequency_title = tk.Label(self.frequency_frame, text="📊 MIỀN TẦN SỐ (Frequency Domain)", 
